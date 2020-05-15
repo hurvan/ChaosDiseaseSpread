@@ -87,11 +87,11 @@ def timeStep(susMat, infMat, remMat, alpha, beta, gamma, B, d, my, Ds, Di, Dr, h
     return tempSus, tempInf, tempRem
 
 
-option = 1
+option = 4
 
-xSize = 3
-ySize = 3
-iters = 10000
+xSize = 10
+ySize = 10
+iters = 4000
 beta = 0.1           #1/21
 alpha = 0.2  #2.5 / beta
 gamma = 0.001
@@ -120,11 +120,14 @@ for i in range(iters-1):
     remMat[:,:,(i+1)] = tempRem
 
 if option == 0:
+
     plt.plot(susMat[0,0,:],'g')
     plt.plot(infMat[0,0,:],'r')
     plt.plot(remMat[0,0,:],'b')
     plt.show()
+
 if option == 1:
+
     for n in range(xSize):
         for m in range (ySize):
             c1 = [((n + m)/(np.max(xSize) + np.max(ySize))), 0, 0]
@@ -167,7 +170,7 @@ if option == 3:
 
     def updatefig(*args):
         global time
-        time += 1
+        time += 10
         if time >= iters:
             time = 0
         print(time)
@@ -193,32 +196,30 @@ if option == 4:
         return remMat[:, :, time]
 
     def iniPlot():
-        pS = np.empty((xSize, ySize), dtype=object)
-        pI = np.empty((xSize, ySize), dtype=object)
-        pR = np.empty((xSize, ySize), dtype=object)
+        print("init")
         for n in range(xSize):
             for m in range (ySize):
                 c1 = [((n + m)/(np.max(xSize) + np.max(ySize))), 0, 0]
                 c2 = [0, ((n + m)/(np.max(xSize) + np.max(ySize))), 0]
                 c3 = [0, 0, ((n + m)/(np.max(xSize) + np.max(ySize)))]
 
-                pS[n, m] = plt.plot([np.nan] * (iters - 1), color = c1)
-                pI[n, m] = plt.plot([np.nan] * (iters - 1), color = c2)
-                pR[n, m] = plt.plot([np.nan] * (iters - 1), color = c3)
+                plt.plot(susMat[n, m, :], color = c1)
+                plt.plot(infMat[n, m, :], color = c2)
+                plt.plot(remMat[n, m, :], color = c3)
 
         plt.legend(["Susceptible", "Infected", "Removed"])
-        return pS, pI, pR
 
-    def updPlot(time):
-        for n in range(xSize):
-            for m in range (ySize):
-                ydataS = susMat[n, m, 0:time]
-                pS[n, m][0].set_ydata()
-                pI[n, m][0].set_ydata(infMat[n, m, time])
-                pR[n, m][0].set_ydata(remMat[n, m, time])
-        return pS, pI, pR
+        x = np.zeros(iters)
+        x[100] = 1
+        y = np.linspace(0, 1, iters)
+        #line, = plt.plot(x, y)
+
+        #return line,
 
     time = -1;
+
+    Writer = animation.writers['ffmpeg']
+    writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
 
     plt.subplot(2, 2, 1)
     im1 = plt.imshow(f1(time), animated=True, vmin=np.min(susMat), vmax=np.max(susMat))
@@ -230,24 +231,40 @@ if option == 4:
 
     plt.subplot(2, 2, 3)
     im3 = plt.imshow(f2(time), animated=True, vmin=np.min(remMat), vmax=np.max(remMat))
-    plt.title('Infected')
+    plt.title('Removed')
 
     plt.subplot(2, 2, 4)
-    pS, pI, pR = iniPlot()
+    iniPlot()
+
+    def updPlot(time):
+        global line
+
+        x = np.zeros(iters)
+        x[time] = 1
+        y = np.linspace(0, 1, iters)
+
+        line.set_data(x, y)
+
+        return line,
 
     def updatefig(*args):
+
         global time
-        time += 1
+        time += 10
         if time >= iters:
             time = 0
+
+        if verbal == 5:
+            v = f1(time)
+            print(v)
         print(time)
-        v = f1(time)
-        print(v)
+
         im1.set_array(f1(time))
         im2.set_array(f2(time))
         im3.set_array(f3(time))
-        updPlot(time)
-        return im1, im2, im3, pS[0, 0][0],
+
+        return im1, im2, im3,
 
     ani = animation.FuncAnimation(fig, updatefig, frames=10, interval=0.1, blit=True)
+    ani.save('lines.mp4', writer=writer)
     plt.show()
