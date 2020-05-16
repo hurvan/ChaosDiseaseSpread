@@ -11,9 +11,12 @@ Created on Sat Apr 25 18:50:36 2020
 @author: hurva
 """
 import numpy as np
+import matplotlib
 import matplotlib.pylab as plt
 import matplotlib.animation as animation
 from  matplotlib.animation import FuncAnimation
+matplotlib.use("Agg")
+from scipy import signal
 import cv2
 import copy
 
@@ -28,7 +31,7 @@ else:
     bType = cv2.BORDER_REFLECT
 
 
-def Diffuse(inf, h=0.01):
+def custom(inf, h=0.01):
     tempInf = np.zeros(((xSize + 2), (ySize + 2)))
     tempInf[1:(xSize+1), 1:(ySize+1)] = np.copy(inf)
 
@@ -48,8 +51,6 @@ def Diffuse(inf, h=0.01):
             diff = (np.sum(neighb))
             if verbal == 1:
                 print("diff: \n", diff)
-            #if(tempInf[i, j] + diff) < 0:
-            #    diff = 0
 
             retInf[(i-1), (j-1)] = diff
 
@@ -60,6 +61,14 @@ def Diffuse(inf, h=0.01):
 
     return retInf
 
+def conv(inf, h=0.01):
+
+    retInf = np.copy(inf)
+
+    retInf = signal.convolve2d(retInf, np.ones((3, 3)), boundary='symm', mode='same')
+
+    return retInf
+    
 def susStep(sus, inf, rem, alpha, gamma, B, d, my, diff, h=0.01):
     return sus + (B + gamma*rem - d*sus -alpha*inf*(1-my*inf)*sus - (diff * sus))*h
 
@@ -78,7 +87,7 @@ def timeStep(susMat, infMat, remMat, alpha, beta, gamma, B, d, my, Ds, Di, Dr, h
     tempInf = np.copy(infMat)
     tempRem = np.copy(remMat)
 
-    diff = Ds * Diffuse(tempInf)
+    diff = Ds * conv(tempInf)
 
     tempSus = susStep(susMat, infMat, remMat, alpha, gamma, B, d, my, diff, h)
     tempInf = infStep(susMat, infMat, alpha, beta, d, my, diff, h)
@@ -91,14 +100,14 @@ option = 4
 
 xSize = 10
 ySize = 10
-iters = 4000
+iters = 40000
 beta = 0.1           #1/21
 alpha = 0.2  #2.5 / beta
 gamma = 0.001
 B = 0.00
 d = 0.00
 my = 0.5
-Ds = 0.05
+Ds = 0.0005
 Di = 0.0
 Dr = 0.0
 h = 0.05
@@ -109,6 +118,7 @@ remMat = np.zeros((xSize, ySize, iters))
 wanMat = np.zeros((xSize, ySize, iters))+0.0000001
 
 infMat[0,0,0] = susMat[0,0,0]*0.001
+infMat[3,3,0] = susMat[0,0,0]*0.002
 susMat[0,0,0] -= susMat[0,0,0]*0.001
 
 for i in range(iters-1):
@@ -265,6 +275,7 @@ if option == 4:
 
         return im1, im2, im3,
 
-    ani = animation.FuncAnimation(fig, updatefig, frames=10, interval=0.1, blit=True)
-    ani.save('lines.mp4', writer=writer)
+    ani = animation.FuncAnimation(fig, updatefig, frames=10,
+            interval=0.1,blit=True, save_count=2000)
+    ani.save('lines.mp4')
     plt.show()
