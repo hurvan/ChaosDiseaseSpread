@@ -20,6 +20,6 @@ model = rem.run_epidemic_models(iters)
 susMat, infMat, remMat = model.SIRSs(xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N)
 
 plotter = p.plotter(susMat, infMat, remMat)
-#plotter.animate_all()
+plotter.animate_all()
 #plotter.plot_all()
-plotter.animate_inf_sus()
+#plotter.animate_inf_sus()
