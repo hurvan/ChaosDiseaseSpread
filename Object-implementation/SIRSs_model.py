@@ -8,21 +8,26 @@ import copy
 
 
 def SIRSs_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N):
+    #Convolution for spatial spread. Change np.ones to change window
     def conv(inf, h=0.01):
         retInf = np.copy(inf)
         retInf = signal.convolve2d(retInf, np.ones((3, 3)), boundary='symm', mode='same')
 
         return retInf
-        
+
+    #Time step for dS/dt 
     def susStep(S, I, R, beta, lambd, my, delta, omega, t, N, diff, h):
         return S + ((lambd*S) + (delta*R) - (my*S) - (((1 + omega*np.cos((2*np.pi*365)*t))*beta)*S*I)/N - (diff*S)/N)*h
 
+    #Time step for dI/dt 
     def infStep(S, I, beta, gamma, my, omega, t, N, diff, h):
         return I + ((((1 + omega*np.cos((2*np.pi*365)*t))*beta)*S*I)/N + (diff*S)/N - gamma*I - my*I)*h
 
+    #Time step for dR/dt 
     def remStep(I, R, gamma, my, delta, h):
         return R + (gamma*I - my*R - delta*R)*h
 
+    #Time step for Euler-method
     def timeStep(susMat, infMat, remMat, beta, gamma, lambd, my, delta, omega, t, N, m, h):
         tempSus = np.copy(susMat)
         tempInf = np.copy(infMat)
@@ -33,7 +38,7 @@ def SIRSs_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N)
         tempSus = susStep(susMat, infMat, remMat, beta, lambd, my, delta, omega, t, N, diff, h)
         tempInf = infStep(susMat, infMat, beta, gamma, my, omega, t, N, diff, h)
         tempRem = remStep(infMat, remMat, gamma, my, delta, h)
-        
+
         return tempSus, tempInf, tempRem
 
     ## -------- Set up -------- ##

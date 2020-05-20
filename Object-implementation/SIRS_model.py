@@ -13,7 +13,7 @@ def SIRS_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, m, N):
         retInf = signal.convolve2d(retInf, np.ones((3, 3)), boundary='symm', mode='same')
 
         return retInf
-        
+
     def susStep(S, I, R, beta, lambd, my, delta, N, diff, h):
         return S + ((lambd*S) + (delta*R) - (my*S) - (beta*S*I)/N - (diff*S)/N)*h
 
@@ -33,7 +33,7 @@ def SIRS_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, m, N):
         tempSus = susStep(susMat, infMat, remMat, beta, lambd, my, delta, N, diff, h)
         tempInf = infStep(susMat, infMat, beta, gamma, my, N, diff, h)
         tempRem = remStep(infMat, remMat, gamma, my, delta, h)
-        
+
         return tempSus, tempInf, tempRem
 
     ## -------- Set up -------- ##
