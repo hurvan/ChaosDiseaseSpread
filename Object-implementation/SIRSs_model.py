@@ -7,7 +7,7 @@ import cv2
 import copy
 
 
-def SIRSs_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N):
+def SIRSs_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N, inf):
     #Convolution for spatial spread. Change np.ones to change window
     def conv(inf, h=0.01):
         retInf = np.copy(inf)
@@ -33,7 +33,10 @@ def SIRSs_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N)
         tempInf = np.copy(infMat)
         tempRem = np.copy(remMat)
 
-        diff = m * conv(tempInf)
+        if m != 0:
+            diff = m * conv(tempInf)
+        else:
+            diff = 0
 
         tempSus = susStep(susMat, infMat, remMat, beta, lambd, my, delta, omega, t, N, diff, h)
         tempInf = infStep(susMat, infMat, beta, gamma, my, omega, t, N, diff, h)
@@ -42,17 +45,6 @@ def SIRSs_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N)
         return tempSus, tempInf, tempRem
 
     ## -------- Set up -------- ##
-    iters = iters
-    xSize = xSize
-    ySize = ySize
-    beta = beta
-    gamma = gamma
-    lambd = lambd
-    my = my
-    delta = delta
-    omega = omega
-    m = m
-    N = N
     h = 0.05
 
     susMat = np.zeros((xSize, ySize, iters))
@@ -61,8 +53,7 @@ def SIRSs_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N)
     wanMat = np.zeros((xSize, ySize, iters))+0.0000001
 
     susMat[:, :, 0] = np.ones((xSize, ySize)) * N 
-    infMat[0,0,0] = susMat[0,0,0]*0.001
-    infMat[3,3,0] = susMat[0,0,0]*0.002
+    infMat[:,:,0] = susMat[:,:,0]*inf
     susMat[:,:,0] -= infMat[:,:,0]
 
     print("Sus: \n", susMat[:, :, 0])
