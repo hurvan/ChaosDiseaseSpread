@@ -8,6 +8,9 @@ import copy
 
 
 def SIRSs_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N, inf):
+
+    verbal = 0
+
     #Convolution for spatial spread. Change np.ones to change window
     def conv(inf, h=0.01):
         retInf = np.copy(inf)
@@ -52,14 +55,15 @@ def SIRSs_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N,
     remMat = np.zeros((xSize, ySize, iters))
     wanMat = np.zeros((xSize, ySize, iters))+0.0000001
 
-    susMat[:, :, 0] = np.ones((xSize, ySize)) * N 
+    susMat[:, :, 0] = np.ones((xSize, ySize)) * N
     infMat[:,:,0] = susMat[:,:,0]*inf
     susMat[:,:,0] -= infMat[:,:,0]
 
-    print("Sus: \n", susMat[:, :, 0])
-    print("Inf: \n", infMat[:, :, 0])
-    print("Rem: \n", remMat[:, :, 0])
-    print()
+    if verbal == 1:
+        print("Sus: \n", susMat[:, :, 0])
+        print("Inf: \n", infMat[:, :, 0])
+        print("Rem: \n", remMat[:, :, 0])
+        print()
 
     ## -------- Run simulation -------- ##
     t = 0

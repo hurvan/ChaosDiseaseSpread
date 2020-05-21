@@ -8,7 +8,6 @@ import copy
 
 class plotter:
     verbal = 0
-
     def __init__(self, susMat, infMat, remMat):
         self.susMat = susMat
         self.infMat = infMat
@@ -208,13 +207,13 @@ class plotter:
                 c2 = [0, ((n + m)/(np.max(self.xSize) + np.max(self.ySize))), 0]
                 c3 = [0, 0, ((n + m)/(np.max(self.xSize) + np.max(self.ySize)))]
 
-                if n < 2 and m < 1 and self.verbal == 1:
+                if n < 2 and m < 1:
                     print(self.infMat[n, m, -num:])
                     print(para[n,m])
 
-                ax1.plot(np.ones((num))*para[n,m], self.susMat[n, m, -num:], '.', color = c1)
-                ax2.plot(np.ones((num))*para[n,m], self.infMat[n, m, -num:], '.', color = c2)
-                ax3.plot(np.ones((num))*para[n,m], self.remMat[n, m, -num:], '.', color = c3)
+                ax1.plot(np.ones((num))*para[n,m], self.susMat[n, m, -num:], color = c1)
+                ax2.plot(np.ones((num))*para[n,m], self.infMat[n, m, -num:], color = c2)
+                ax3.plot(np.ones((num))*para[n,m], self.remMat[n, m, -num:], color = c3)
 
         plt.show()
 
