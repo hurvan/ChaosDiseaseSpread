@@ -218,3 +218,121 @@ class plotter:
 
         plt.show()
 
+    def plot_all_h(self, para):
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        
+        for n in range(self.xSize):
+            for m in range (self.ySize):
+                t = np.linspace(0, para[n,m]*self.iters, self.iters)
+
+                c1 = [((n + m)/(np.max(self.xSize) + np.max(self.ySize))), 0, 0]
+                c2 = [0, ((n + m)/(np.max(self.xSize) + np.max(self.ySize))), 0]
+                c3 = [0, 0, ((n + m)/(np.max(self.xSize) + np.max(self.ySize)))]
+
+                if n == (self.xSize-1) and m == (self.ySize-1):
+                    l1, = ax.plot(t, self.susMat[n, m, :], color = c1)
+                    l2, = ax.plot(t, self.infMat[n, m, :], color = c2)
+                    l3, = ax.plot(t, self.remMat[n, m, :], color = c3)
+
+                else:
+                    ax.plot(t, self.susMat[n, m, :], color = c1)
+                    ax.plot(t, self.infMat[n, m, :], color = c2)
+                    ax.plot(t, self.remMat[n, m, :], color = c3)
+
+        plt.legend([l1, l2, l3], ['Susceptible', 'Infected', 'Removed'], loc='center right')
+        plt.show()
+
+    def animate_all_SERISs(self, expMat):
+        fig = plt.figure()
+
+        def f1(time):
+            return self.susMat[:, :, time]
+
+        def f2(time):
+            return expMat[:, :, time]
+
+        def f3(time):
+            return self.infMat[:, :, time]
+
+        def f4(time):
+            return self.remMat[:, :, time]
+
+        def iniPlot():
+            print("init")
+            for n in range(self.xSize):
+                for m in range (self.ySize):
+                    c1 = [((n + m)/(np.max(self.xSize) + np.max(self.ySize))), 0, 0]
+                    c2 = [0, ((n + m)/(np.max(self.xSize) + np.max(self.ySize))), 0]
+                    c3 = [0, 0, ((n + m)/(np.max(self.xSize) + np.max(self.ySize)))]
+                    c4 = [1, 0, ((n + m)/(np.max(self.xSize) + np.max(self.ySize)))]
+
+                    if n == (self.xSize-1) and m == (self.ySize-1):
+                        l1, = plt.plot(self.susMat[n, m, :], color = c1)
+                        l2, = plt.plot(expMat[n, m, :], color = c4)
+                        l3, = plt.plot(self.infMat[n, m, :], color = c2)
+                        l4, = plt.plot(self.remMat[n, m, :], color = c3)
+
+                    else:
+                        plt.plot(self.susMat[n, m, :], color = c1)
+                        plt.plot(expMat[n, m, :], color = c4)
+                        plt.plot(self.infMat[n, m, :], color = c2)
+                        plt.plot(self.remMat[n, m, :], color = c3)
+
+            plt.legend([l1, l2, l3, l4], ['Susceptible', 'Exposed', 'Infected', 'Removed'], loc='center right')
+            plt.xlabel("Time (days)")
+
+            x = np.zeros(self.iters)
+            x[100] = 1
+            y = np.linspace(0, 1, self.iters)
+            #line, = plt.plot(x, y)
+
+            #return line,
+
+        self.time = -1;
+
+        #Writer = animation.writers['ffmpeg']
+        #writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
+
+        plt.subplot(2, 3, 1)
+        im1 = plt.imshow(f1(self.time), animated=True, vmin=np.min(self.susMat), vmax=np.max(self.susMat))
+        plt.title('Susceptibale')
+
+        plt.subplot(2, 3, 2)
+        im2 = plt.imshow(f2(self.time), animated=True, vmin=np.min(expMat), vmax=np.max(expMat))
+        plt.title('Susceptibale')
+
+        plt.subplot(2, 3, 4)
+        im3 = plt.imshow(f2(self.time), animated=True, vmin=np.min(self.infMat), vmax=np.max(self.infMat))
+        plt.title('Infected')
+
+        plt.subplot(2, 3, 5)
+        im4 = plt.imshow(f2(self.time), animated=True, vmin=np.min(self.remMat), vmax=np.max(self.remMat))
+        plt.title('Removed')
+
+        plt.subplot(2, 3, 6)
+        iniPlot()
+
+        def updatefig(*args):
+            global time
+            self.time += 10
+            if self.time >= self.iters:
+                self.time = 0
+
+            if self.verbal == 5:
+                v = f1(self.time)
+                print(v)
+            print(self.time)
+
+            im1.set_array(f1(self.time))
+            im2.set_array(f2(self.time))
+            im3.set_array(f3(self.time))
+            im4.set_array(f3(self.time))
+
+            return im1, im2, im3, im4,
+
+        ani = animation.FuncAnimation(fig, updatefig, frames=10, interval=0.1, blit=True)
+        #ani.save('lines.mp4', writer=writer)
+        plt.show()
+
+

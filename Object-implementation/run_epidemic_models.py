@@ -2,7 +2,10 @@ import numpy as np
 import cv2
 import copy
 import SIRSs_model as SIRSs_m
+import SEIRS_model as SEIRSs_m
 
+#To do: Resturcture so all parameters are given in constructor with defualt values for model-specific parameters set to zero.
+#       Then the different methods for each model can exchanged for a single one that just runs the right model depending om the given parameters.
 class run_epidemic_models:
 
     def __init__(self, iters):
@@ -34,25 +37,41 @@ class run_epidemic_models:
 
         return susMat, infMat, remMat
 
-    #Test SIC for initial infected. Mobility factor set to zero.
-    def SIC_test_inf(self, xSize, ySize, beta, gamma, lambd, my, delta, omega, N, inf1, inf2):
-        inf = np.linspace(inf1, inf2, (xSize*ySize))
-        inf = np.reshape(self.inf, (xSize, ySize))
-        susMat, infMat, remMat = SIRSs_m.SIRSs_model(self.iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, 0, N, inf)
+    #SIRS model with a seasonality factor of spread(omega)
+    def SEIRSs(self, xSize, ySize, inf, alpha, beta, gamma, lambd, my, delta, omega, m, N):
+        N = np.ones((xSize, ySize)) * N
+        susMat, expMat, infMat, remMat = SEIRSs_m.SEIRSs_model(self.iters, xSize, ySize, alpha, beta, gamma, lambd, my, delta, omega, m, N, inf)
 
-        return susMat, infMat, remMat, inf
+        return susMat, expMat, infMat, remMat
+
+    #Test SIC for initial infected. Mobility factor set to zero.
+    def SIC_test_inf(self, xSize, ySize, beta, gamma, lambd, my, delta, omega, N, inf1, inf2, alpha=0):
+        inf = np.linspace(inf1, inf2, (xSize*ySize))
+        inf = np.reshape(inf, (xSize, ySize))
+        if alpha == 0:
+            susMat, infMat, remMat = SIRSs_m.SIRSs_model(self.iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, 0, N, inf)
+            return susMat, infMat, remMat, inf
+        else:
+            susMat, expMat, infMat, remMat = SEIRSs_m.SEIRSs_model(self.iters, xSize, ySize, alpha, beta, gamma, lambd, my, delta, omega, 0, N, inf)
+            return susMat, expMat, infMat, remMat, inf
+
+
+
 
     #Test parameter sensitivty for population. Mobility factor set to zero.
-    def param_seni_test_N(self, xSize, ySize, inf, beta, gamma, lambd, my, delta, omega, N1, N2):
+    def param_seni_test_N(self, xSize, ySize, inf, beta, gamma, lambd, my, delta, omega, N1, N2, alpha=0):
         N = np.linspace(N1, N2, (xSize*ySize))
         N = np.reshape(N, (xSize, ySize))
         inf = np.ones((xSize, ySize)) * 0.001
-        susMat, infMat, remMat = SIRSs_m.SIRSs_model(self.iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, 0, N, inf)
-
-        return susMat, infMat, remMat, N
+        if alpha == 0:
+            susMat, infMat, remMat = SIRSs_m.SIRSs_model(self.iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, 0, N, inf)
+            return susMat, infMat, remMat, N
+        else:
+            susMat, expMat, infMat, remMat = SEIRSs_m.SEIRSs_model(self.iters, xSize, ySize, alpha, beta, gamma, lambd, my, delta, omega, 0, N, inf)
+            return susMat, expMat, infMat, remMat, N
 
     #Test parameter sensitivty for population. Mobility factor set to zero.
-    def param_seni_test(self, xSize, ySize, inf, beta, gamma, lambd, my, delta, omega, N, para1, para2, paraChoise):
+    def param_seni_test(self, xSize, ySize, inf, beta, gamma, lambd, my, delta, omega, N, para1, para2, paraChoise, alpha=0):
         para = np.linspace(para1, para2, (xSize*ySize))
         para = np.reshape(para, (xSize, ySize))
 
@@ -69,13 +88,17 @@ class run_epidemic_models:
             delta = para
         elif paraChoise == 6:
             omega = para
+        elif paraChoise == 7 and alpha != 0:
+            alpha = para
         else:
             print("Please choose parameter: 1 = beta, 2 = gamma, 3 = lambd, 4 = my, 5 = delta, 6 = omega")
             return
-
-        susMat, infMat, remMat = SIRSs_m.SIRSs_model(self.iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, 0, N, inf)
-
-        return susMat, infMat, remMat, para
+        if alpha.all() == 0:
+            susMat, infMat, remMat = SIRSs_m.SIRSs_model(self.iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, 0, N, inf)
+            return susMat, infMat, remMat, para
+        else:
+            susMat, expMat, infMat, remMat = SEIRSs_m.SEIRSs_model(self.iters, xSize, ySize, alpha, beta, gamma, lambd, my, delta, omega, 0, N, inf)
+            return susMat, expMat, infMat, remMat, para
 
     #Test parameter sensitivty for population. Mobility factor set to zero.
     def param_seni_test_m(self, xSize, ySize, inf, beta, gamma, lambd, my, delta, omega, N, para1, para2):
@@ -96,3 +119,13 @@ class run_epidemic_models:
                 remRet[i, j,:] = np.sum(np.sum(remMat, axis=0), axis=0)
 
         return susRet, infRet, remRet, m
+
+    #Test parameter sensitivty for population. Mobility factor set to zero.
+    def param_seni_test_h(self, xSize, ySize, inf, beta, gamma, lambd, my, delta, omega, N, para1, para2):
+        h = np.linspace(para1, para2, (xSize*ySize))
+        h = np.reshape(h, (xSize, ySize))
+
+        print("Sweep perameters: \n", h)
+        susMat, infMat, remMat = SIRSs_m.SIRSs_model_h(self.iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, 0, N, inf, h)
+
+        return susMat, infMat, remMat, h

@@ -7,7 +7,7 @@ import cv2
 import copy
 
 
-def SIRSs_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N, inf):
+def SIRSs_model_h(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N, inf, h):
 
     verbal = 0
 
@@ -48,12 +48,10 @@ def SIRSs_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N,
         return tempSus, tempInf, tempRem
 
     ## -------- Set up -------- ##
-    h = 0.05
 
     susMat = np.zeros((xSize, ySize, iters))
     infMat = np.zeros((xSize, ySize, iters))
     remMat = np.zeros((xSize, ySize, iters))
-    wanMat = np.zeros((xSize, ySize, iters))+0.0000001
 
     susMat[:, :, 0] = np.ones((xSize, ySize)) * N
     infMat[:,:,0] = susMat[:,:,0]*inf
@@ -80,3 +78,6 @@ def SIRSs_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N,
     return susMat, infMat, remMat
 
 
+def SIRSs_model(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N, inf):
+    h = 0.05
+    return SIRSs_model_h(iters, xSize, ySize, beta, gamma, lambd, my, delta, omega, m, N, inf, h)
